@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RealMine</title>
+<style>
+body{margin:0;background:#0d1117;color:#fff;font-family:Arial;text-align:center}
+header{padding:25px;color:#20d9c4;font-size:30px;font-weight:bold}
+.card{margin:20px;padding:25px;background:#151b23;border-radius:20px}
+.balance{font-size:35px;color:#20d9c4;margin:20px}
+button{background:#20d9c4;border:0;padding:15px 30px;border-radius:12px;font-size:18px}
+small{color:#aaa}
+</style>
+</head>
+<body>
+<header>RealMine</header>
+
+<div class="card">
+<h1>لوحة التحكم</h1>
+<p>رصيد التعدين</p>
+<div class="balance" id="balance">0.00000000</div>
+<p><small>لا توجد أجهزة تعدين متصلة</small></p>
+<button onclick="start()">بدء التعدين</button>
+</div>
+
+<script>
+let balance=0;
+function start(){
+ alert("التعدين الحقيقي يحتاج إلى مصدر تعدين فعلي متصل بالخادم.");
+}
+</script>
+</body>
+</html>
