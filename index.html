@@ -7,7 +7,7 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1118;color:#fff;font-family:Arial}
+body{margin:0;background:#0b1118;color:#fff;font-family:Arial,sans-serif}
 header{padding:22px;text-align:center;font-size:28px;font-weight:bold;color:#20d9c4}
 .container{max-width:520px;margin:auto;padding:15px}
 .card{background:#151d27;border:1px solid #263341;border-radius:18px;padding:20px;margin-bottom:15px}
@@ -16,7 +16,7 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 .secondary{background:#263341;color:#fff}
 .balance{font-size:36px;text-align:center;color:#20d9c4;margin:20px 0}
 .stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #27313c}
-.hidden{display:none}
+.hidden{display:none!important}
 .msg{padding:10px;border-radius:8px;margin:10px 0;background:#202c38}
 .success{color:#20d9c4}.error{color:#ff7777}
 .small{font-size:12px;color:#9aa7b3}
@@ -34,7 +34,6 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 
 <div id="message" class="msg hidden"></div>
 
-<!-- تسجيل الدخول -->
 <section id="auth">
 <div class="card">
 <h2>تسجيل الدخول</h2>
@@ -45,7 +44,6 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 </div>
 </section>
 
-<!-- التسجيل -->
 <section id="register" class="hidden">
 <div class="card">
 <h2>إنشاء حساب</h2>
@@ -57,7 +55,6 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 </div>
 </section>
 
-<!-- التطبيق -->
 <section id="app" class="hidden">
 
 <div class="nav">
@@ -66,7 +63,6 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 <button onclick="logout()">خروج</button>
 </div>
 
-<!-- الرئيسية -->
 <div id="home" class="page">
 
 <div class="card">
@@ -100,7 +96,6 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;backgr
 
 </div>
 
-<!-- السحب -->
 <div id="withdraw" class="page hidden">
 
 <div class="card">
@@ -142,33 +137,28 @@ placeholder="عنوان المحفظة">
 <script>
 
 /* =========================
-   إعداد Supabase
+   SUPABASE
 ========================= */
 
 const SUPABASE_URL =
 "https://wtdgwookaozcwivgzque.supabase.co";
 
-/*
-ضع Publishable Key هنا فقط
-ولا تستخدم service_role
-*/
-
 const SUPABASE_KEY =
-"ضع_هنا_PUBLISHABLE_KEY";
+"sb_publishable_-QBPmgZrhDRVBnMVE9oOfg_4dTTWVeh";
 
 let session = null;
 
 
 /* =========================
-   Headers
+   HEADERS
 ========================= */
 
 function headers(){
 
 return {
 "apikey":SUPABASE_KEY,
-"Authorization":
-"Bearer "+(session?.access_token || SUPABASE_KEY),
+"Authorization":"Bearer "+
+(session?.access_token || SUPABASE_KEY),
 "Content-Type":"application/json"
 };
 
@@ -187,7 +177,7 @@ el.textContent=text;
 el.className="msg "+type;
 el.classList.remove("hidden");
 
-setTimeout(()=>{
+setTimeout(function(){
 el.classList.add("hidden");
 },5000);
 
@@ -195,44 +185,38 @@ el.classList.add("hidden");
 
 
 /* =========================
-   الشاشات
+   تسجيل الدخول / التسجيل
 ========================= */
 
 function showLogin(){
 
-document.getElementById("auth")
-.classList.remove("hidden");
-
-document.getElementById("register")
-.classList.add("hidden");
+document.getElementById("auth").classList.remove("hidden");
+document.getElementById("register").classList.add("hidden");
 
 }
-
 
 function showRegister(){
 
-document.getElementById("auth")
-.classList.add("hidden");
-
-document.getElementById("register")
-.classList.remove("hidden");
+document.getElementById("auth").classList.add("hidden");
+document.getElementById("register").classList.remove("hidden");
 
 }
 
 
+/* =========================
+   التنقل
+========================= */
+
 function showPage(page){
 
-document.querySelectorAll(".page")
-.forEach(x=>x.classList.add("hidden"));
+document.querySelectorAll(".page").forEach(function(x){
+x.classList.add("hidden");
+});
 
-document.getElementById(page)
-.classList.remove("hidden");
+document.getElementById(page).classList.remove("hidden");
 
-if(page==="home")
-loadDashboard();
-
-if(page==="withdraw")
-loadWithdrawals();
+if(page==="home") loadDashboard();
+if(page==="withdraw") loadWithdrawals();
 
 }
 
@@ -243,14 +227,9 @@ loadWithdrawals();
 
 async function register(){
 
-const name=
-document.getElementById("regName").value.trim();
-
-const email=
-document.getElementById("regEmail").value.trim();
-
-const password=
-document.getElementById("regPassword").value;
+const name=document.getElementById("regName").value.trim();
+const email=document.getElementById("regEmail").value.trim();
+const password=document.getElementById("regPassword").value;
 
 if(!email || password.length<6){
 
@@ -273,7 +252,8 @@ body:JSON.stringify({
 email:email,
 password:password
 })
-});
+}
+);
 
 const data=await r.json();
 
@@ -311,6 +291,7 @@ showLogin();
 
 }catch(e){
 
+console.error(e);
 msg("تعذر الاتصال بالخادم","error");
 
 }
@@ -319,22 +300,18 @@ msg("تعذر الاتصال بالخادم","error");
 
 
 /* =========================
-   تسجيل الدخول
+   الدخول
 ========================= */
 
 async function login(){
 
-const email=
-document.getElementById("loginEmail").value.trim();
-
-const password=
-document.getElementById("loginPassword").value;
+const email=document.getElementById("loginEmail").value.trim();
+const password=document.getElementById("loginPassword").value;
 
 try{
 
 const r=await fetch(
-SUPABASE_URL+
-"/auth/v1/token?grant_type=password",
+SUPABASE_URL+"/auth/v1/token?grant_type=password",
 {
 method:"POST",
 headers:{
@@ -345,7 +322,8 @@ body:JSON.stringify({
 email:email,
 password:password
 })
-});
+}
+);
 
 const data=await r.json();
 
@@ -368,6 +346,7 @@ await openApp();
 
 }catch(e){
 
+console.error(e);
 msg("تعذر الاتصال بالخادم","error");
 
 }
@@ -376,17 +355,15 @@ msg("تعذر الاتصال بالخادم","error");
 
 
 /* =========================
-   إنشاء الملف الشخصي
+   الملف الشخصي
 ========================= */
 
 async function createProfile(name){
 
-if(!session?.user?.id)
-return;
+if(!session?.user?.id)return;
 
 await fetch(
-SUPABASE_URL+
-"/rest/v1/users_profile",
+SUPABASE_URL+"/rest/v1/users_profile",
 {
 method:"POST",
 headers:{
@@ -397,13 +374,14 @@ body:JSON.stringify({
 id:session.user.id,
 name:name || "مستخدم"
 })
-});
+}
+);
 
 }
 
 
 /* =========================
-   إنشاء الرصيد
+   الرصيد
 ========================= */
 
 async function ensureBalance(){
@@ -423,8 +401,7 @@ const rows=await r.json();
 if(!rows.length){
 
 await fetch(
-SUPABASE_URL+
-"/rest/v1/balances",
+SUPABASE_URL+"/rest/v1/balances",
 {
 method:"POST",
 headers:{
@@ -437,7 +414,8 @@ asset:"MINING-CREDIT",
 available:0,
 pending:0
 })
-});
+}
+);
 
 }
 
@@ -450,14 +428,9 @@ pending:0
 
 async function openApp(){
 
-document.getElementById("auth")
-.classList.add("hidden");
-
-document.getElementById("register")
-.classList.add("hidden");
-
-document.getElementById("app")
-.classList.remove("hidden");
+document.getElementById("auth").classList.add("hidden");
+document.getElementById("register").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
 
 await loadDashboard();
 
@@ -473,9 +446,10 @@ async function loadDashboard(){
 try{
 
 const r=await fetch(
-SUPABASE_URL=
-"https://wtdgwookaozcwivgzque.supabase.co";
-"&asset="sb_publishable_-QBPmgZrhDRVBnMVE9oOfg_4dTTWVeh";,
+SUPABASE_URL+
+"/rest/v1/balances?user_id=eq."+
+session.user.id+
+"&asset=eq.MINING-CREDIT&select=*",
 {
 headers:headers()
 }
@@ -483,19 +457,27 @@ headers:headers()
 
 const rows=await r.json();
 
-const balance=
-Number(rows[0]?.available || 0);
+if(!r.ok){
 
-document.getElementById("balance")
-.textContent=balance.toFixed(8);
+console.error(rows);
+msg("تعذر تحميل الرصيد","error");
+return;
 
-document.getElementById("withdrawBalance")
-.textContent=balance.toFixed(8);
+}
+
+const balance=Number(rows[0]?.available || 0);
+
+document.getElementById("balance").textContent=
+balance.toFixed(8);
+
+document.getElementById("withdrawBalance").textContent=
+balance.toFixed(8);
 
 await loadTransactions();
 
 }catch(e){
 
+console.error(e);
 msg("تعذر تحميل الرصيد","error");
 
 }
@@ -504,16 +486,17 @@ msg("تعذر تحميل الرصيد","error");
 
 
 /* =========================
-   العمليات
+   سجل العمليات
 ========================= */
 
 async function loadTransactions(){
 
+try{
+
 const r=await fetch(
 SUPABASE_URL+
-"https://wtdgwookaozcwivgzque.supabase.co";
- 
-session.user.
+"/rest/v1/ledger?user_id=eq."+
+session.user.id+
 "&select=*&order=created_at.desc&limit=10",
 {
 headers:headers()
@@ -522,8 +505,15 @@ headers:headers()
 
 const rows=await r.json();
 
-const box=
-document.getElementById("transactions");
+const box=document.getElementById("transactions");
+
+if(!r.ok){
+
+console.error(rows);
+box.textContent="تعذر تحميل العمليات";
+return;
+
+}
 
 if(!rows.length){
 
@@ -532,38 +522,38 @@ return;
 
 }
 
-box.innerHTML=rows.map(x=>`
+box.innerHTML=rows.map(function(x){
 
+return `
 <div class="item">
-
 <b>${x.type}</b>
-
 <br>
-
-${Number(x.amount).toFixed(8)}
-${x.asset}
-
+${Number(x.amount).toFixed(8)} ${x.asset}
 <br>
-
 <span class="small">
 ${new Date(x.created_at).toLocaleString("ar")}
 </span>
-
 </div>
+`;
 
-`).join("");
+}).join("");
+
+}catch(e){
+
+console.error(e);
+
+}
 
 }
 
 
 /* =========================
-   طلب السحب
+   السحب
 ========================= */
 
 async function withdraw(){
 
-const amount=
-Number(
+const amount=Number(
 document.getElementById("withdrawAmount").value
 );
 
@@ -592,8 +582,14 @@ headers:headers()
 
 const rows=await r.json();
 
-const balance=
-Number(rows[0]?.available || 0);
+if(!r.ok){
+
+msg("تعذر التحقق من الرصيد","error");
+return;
+
+}
+
+const balance=Number(rows[0]?.available || 0);
 
 if(amount>balance){
 
@@ -602,12 +598,8 @@ return;
 
 }
 
-
-/* إنشاء طلب السحب */
-
 const insert=await fetch(
-SUPABASE_URL+
-"/rest/v1/withdrawals",
+SUPABASE_URL+"/rest/v1/withdrawals",
 {
 method:"POST",
 headers:{
@@ -622,25 +614,23 @@ network:network,
 wallet_address:wallet,
 status:"pending"
 })
-});
+}
+);
 
 if(!insert.ok){
+
+const error=await insert.text();
+console.error(error);
 
 msg("تعذر إنشاء طلب السحب","error");
 return;
 
 }
 
-msg(
-"تم إرسال طلب السحب للمراجعة",
-"success"
-);
+msg("تم إرسال طلب السحب للمراجعة","success");
 
-document.getElementById("withdrawAmount")
-.value="";
-
-document.getElementById("walletAddress")
-.value="";
+document.getElementById("withdrawAmount").value="";
+document.getElementById("walletAddress").value="";
 
 await loadWithdrawals();
 
@@ -648,10 +638,12 @@ await loadWithdrawals();
 
 
 /* =========================
-   عرض طلبات السحب
+   طلبات السحب
 ========================= */
 
 async function loadWithdrawals(){
+
+try{
 
 const r=await fetch(
 SUPABASE_URL+
@@ -665,8 +657,15 @@ headers:headers()
 
 const rows=await r.json();
 
-const box=
-document.getElementById("withdrawals");
+const box=document.getElementById("withdrawals");
+
+if(!r.ok){
+
+console.error(rows);
+box.textContent="تعذر تحميل الطلبات";
+return;
+
+}
 
 if(!rows.length){
 
@@ -675,50 +674,43 @@ return;
 
 }
 
-box.innerHTML=rows.map(x=>`
+box.innerHTML=rows.map(function(x){
 
+return `
 <div class="item">
-
-<b>
-${Number(x.amount).toFixed(8)}
-</b>
-
+<b>${Number(x.amount).toFixed(8)}</b>
 <br>
-
-الشبكة:
-${x.network || "-"}
-
+الشبكة: ${x.network || "-"}
 <br>
-
-الحالة:
-${x.status}
-
+الحالة: ${x.status}
 <br>
-
-<span class="small">
-${x.wallet_address || ""}
-</span>
-
+<span class="small">${x.wallet_address || ""}</span>
 </div>
+`;
 
-`).join("");
+}).join("");
+
+}catch(e){
+
+console.error(e);
+
+}
 
 }
 
 
 /* =========================
-   تسجيل الخروج
+   خروج
 ========================= */
 
 function logout(){
 
 session=null;
 
-document.getElementById("app")
-.classList.add("hidden");
+document.getElementById("app").classList.add("hidden");
+document.getElementById("auth").classList.remove("hidden");
 
-document.getElementById("auth")
-.classList.remove("hidden");
+showLogin();
 
 msg("تم تسجيل الخروج","success");
 
@@ -729,4 +721,4 @@ showLogin();
 </script>
 
 </body>
- </html>
+   </html>
