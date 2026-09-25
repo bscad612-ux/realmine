@@ -4,31 +4,729 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RealMine</title>
+
 <style>
-body{margin:0;background:#0d1117;color:#fff;font-family:Arial;text-align:center}
-header{padding:25px;color:#20d9c4;font-size:30px;font-weight:bold}
-.card{margin:20px;padding:25px;background:#151b23;border-radius:20px}
-.balance{font-size:35px;color:#20d9c4;margin:20px}
-button{background:#20d9c4;border:0;padding:15px 30px;border-radius:12px;font-size:18px}
-small{color:#aaa}
+*{box-sizing:border-box}
+body{margin:0;background:#0b1118;color:#fff;font-family:Arial}
+header{padding:22px;text-align:center;font-size:28px;font-weight:bold;color:#20d9c4}
+.container{max-width:520px;margin:auto;padding:15px}
+.card{background:#151d27;border:1px solid #263341;border-radius:18px;padding:20px;margin-bottom:15px}
+input,select{width:100%;padding:14px;margin:7px 0;background:#0e151d;color:#fff;border:1px solid #334454;border-radius:10px}
+button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:10px;background:#20d9c4;color:#071014;font-weight:bold;font-size:16px}
+.secondary{background:#263341;color:#fff}
+.balance{font-size:36px;text-align:center;color:#20d9c4;margin:20px 0}
+.stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #27313c}
+.hidden{display:none}
+.msg{padding:10px;border-radius:8px;margin:10px 0;background:#202c38}
+.success{color:#20d9c4}.error{color:#ff7777}
+.small{font-size:12px;color:#9aa7b3}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:15px}
+.nav button{margin:0;font-size:13px}
+.item{padding:12px 0;border-bottom:1px solid #293541}
 </style>
 </head>
+
 <body>
-<header>RealMine</header>
+
+<header>⛏️ RealMine</header>
+
+<div class="container">
+
+<div id="message" class="msg hidden"></div>
+
+<!-- تسجيل الدخول -->
+<section id="auth">
+<div class="card">
+<h2>تسجيل الدخول</h2>
+<input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
+<input id="loginPassword" type="password" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+<button class="secondary" onclick="showRegister()">إنشاء حساب</button>
+</div>
+</section>
+
+<!-- التسجيل -->
+<section id="register" class="hidden">
+<div class="card">
+<h2>إنشاء حساب</h2>
+<input id="regName" placeholder="الاسم">
+<input id="regEmail" type="email" placeholder="البريد الإلكتروني">
+<input id="regPassword" type="password" placeholder="كلمة المرور">
+<button onclick="register()">إنشاء الحساب</button>
+<button class="secondary" onclick="showLogin()">لدي حساب</button>
+</div>
+</section>
+
+<!-- التطبيق -->
+<section id="app" class="hidden">
+
+<div class="nav">
+<button onclick="showPage('home')">الرئيسية</button>
+<button onclick="showPage('withdraw')">السحب</button>
+<button onclick="logout()">خروج</button>
+</div>
+
+<!-- الرئيسية -->
+<div id="home" class="page">
 
 <div class="card">
-<h1>لوحة التحكم</h1>
-<p>رصيد التعدين</p>
+<h2>الرصيد</h2>
 <div class="balance" id="balance">0.00000000</div>
-<p><small>لا توجد أجهزة تعدين متصلة</small></p>
-<button onclick="start()">بدء التعدين</button>
+<div style="text-align:center">MINING-CREDIT</div>
+</div>
+
+<div class="card">
+<h2>حالة التعدين</h2>
+
+<div class="stat">
+<span>Hashrate</span>
+<span id="hashrate">0 TH/s</span>
+</div>
+
+<div class="stat">
+<span>المصدر</span>
+<span id="miningStatus">غير متصل</span>
+</div>
+
+<p class="small">
+الأرباح لا تُضاف إلا من مصدر تعدين حقيقي.
+</p>
+</div>
+
+<div class="card">
+<h2>آخر العمليات</h2>
+<div id="transactions">لا توجد عمليات</div>
+</div>
+
+</div>
+
+<!-- السحب -->
+<div id="withdraw" class="page hidden">
+
+<div class="card">
+<h2>طلب سحب</h2>
+
+<p>الرصيد المتاح:</p>
+<div class="balance" id="withdrawBalance">0.00000000</div>
+
+<input id="withdrawAmount"
+type="number"
+step="0.00000001"
+placeholder="المبلغ">
+
+<select id="network">
+<option value="">اختر الشبكة</option>
+<option value="BSC">BNB Smart Chain (BSC)</option>
+</select>
+
+<input id="walletAddress"
+placeholder="عنوان المحفظة">
+
+<button onclick="withdraw()">إرسال طلب السحب</button>
+
+<p class="small">
+طلب السحب يحتاج إلى معالجة فعلية قبل إرسال العملات.
+</p>
+</div>
+
+<div class="card">
+<h2>طلبات السحب</h2>
+<div id="withdrawals">لا توجد طلبات</div>
+</div>
+
+</div>
+
+</section>
 </div>
 
 <script>
-let balance=0;
-function start(){
- alert("التعدين الحقيقي يحتاج إلى مصدر تعدين فعلي متصل بالخادم.");
+
+/* =========================
+   إعداد Supabase
+========================= */
+
+const SUPABASE_URL =
+"https://wtdgwookaozcwivgzque.supabase.co";
+
+/*
+ضع Publishable Key هنا فقط
+ولا تستخدم service_role
+*/
+
+const SUPABASE_KEY =
+"ضع_هنا_PUBLISHABLE_KEY";
+
+let session = null;
+
+
+/* =========================
+   Headers
+========================= */
+
+function headers(){
+
+return {
+"apikey":SUPABASE_KEY,
+"Authorization":
+"Bearer "+(session?.access_token || SUPABASE_KEY),
+"Content-Type":"application/json"
+};
+
 }
+
+
+/* =========================
+   الرسائل
+========================= */
+
+function msg(text,type=""){
+
+const el=document.getElementById("message");
+
+el.textContent=text;
+el.className="msg "+type;
+el.classList.remove("hidden");
+
+setTimeout(()=>{
+el.classList.add("hidden");
+},5000);
+
+}
+
+
+/* =========================
+   الشاشات
+========================= */
+
+function showLogin(){
+
+document.getElementById("auth")
+.classList.remove("hidden");
+
+document.getElementById("register")
+.classList.add("hidden");
+
+}
+
+
+function showRegister(){
+
+document.getElementById("auth")
+.classList.add("hidden");
+
+document.getElementById("register")
+.classList.remove("hidden");
+
+}
+
+
+function showPage(page){
+
+document.querySelectorAll(".page")
+.forEach(x=>x.classList.add("hidden"));
+
+document.getElementById(page)
+.classList.remove("hidden");
+
+if(page==="home")
+loadDashboard();
+
+if(page==="withdraw")
+loadWithdrawals();
+
+}
+
+
+/* =========================
+   التسجيل
+========================= */
+
+async function register(){
+
+const name=
+document.getElementById("regName").value.trim();
+
+const email=
+document.getElementById("regEmail").value.trim();
+
+const password=
+document.getElementById("regPassword").value;
+
+if(!email || password.length<6){
+
+msg("أدخل بريدًا صحيحًا وكلمة مرور 6 أحرف على الأقل","error");
+return;
+
+}
+
+try{
+
+const r=await fetch(
+SUPABASE_URL+"/auth/v1/signup",
+{
+method:"POST",
+headers:{
+"apikey":SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+email:email,
+password:password
+})
+});
+
+const data=await r.json();
+
+if(!r.ok){
+
+msg(
+data.msg ||
+data.error_description ||
+"فشل التسجيل",
+"error"
+);
+
+return;
+
+}
+
+if(data.access_token){
+
+session=data;
+
+await createProfile(name);
+await ensureBalance();
+await openApp();
+
+}else{
+
+msg(
+"تم إنشاء الحساب. تحقق من بريدك الإلكتروني ثم سجل الدخول.",
+"success"
+);
+
+showLogin();
+
+}
+
+}catch(e){
+
+msg("تعذر الاتصال بالخادم","error");
+
+}
+
+}
+
+
+/* =========================
+   تسجيل الدخول
+========================= */
+
+async function login(){
+
+const email=
+document.getElementById("loginEmail").value.trim();
+
+const password=
+document.getElementById("loginPassword").value;
+
+try{
+
+const r=await fetch(
+SUPABASE_URL+
+"/auth/v1/token?grant_type=password",
+{
+method:"POST",
+headers:{
+"apikey":SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+email:email,
+password:password
+})
+});
+
+const data=await r.json();
+
+if(!r.ok){
+
+msg(
+data.error_description ||
+"بيانات الدخول غير صحيحة",
+"error"
+);
+
+return;
+
+}
+
+session=data;
+
+await ensureBalance();
+await openApp();
+
+}catch(e){
+
+msg("تعذر الاتصال بالخادم","error");
+
+}
+
+}
+
+
+/* =========================
+   إنشاء الملف الشخصي
+========================= */
+
+async function createProfile(name){
+
+if(!session?.user?.id)
+return;
+
+await fetch(
+SUPABASE_URL+
+"/rest/v1/users_profile",
+{
+method:"POST",
+headers:{
+...headers(),
+"Prefer":"resolution=ignore-duplicates"
+},
+body:JSON.stringify({
+id:session.user.id,
+name:name || "مستخدم"
+})
+});
+
+}
+
+
+/* =========================
+   إنشاء الرصيد
+========================= */
+
+async function ensureBalance(){
+
+const r=await fetch(
+SUPABASE_URL+
+"/rest/v1/balances?user_id=eq."+
+session.user.id+
+"&asset=eq.MINING-CREDIT&select=*",
+{
+headers:headers()
+}
+);
+
+const rows=await r.json();
+
+if(!rows.length){
+
+await fetch(
+SUPABASE_URL+
+"/rest/v1/balances",
+{
+method:"POST",
+headers:{
+...headers(),
+"Prefer":"return=minimal"
+},
+body:JSON.stringify({
+user_id:session.user.id,
+asset:"MINING-CREDIT",
+available:0,
+pending:0
+})
+});
+
+}
+
+}
+
+
+/* =========================
+   فتح التطبيق
+========================= */
+
+async function openApp(){
+
+document.getElementById("auth")
+.classList.add("hidden");
+
+document.getElementById("register")
+.classList.add("hidden");
+
+document.getElementById("app")
+.classList.remove("hidden");
+
+await loadDashboard();
+
+}
+
+
+/* =========================
+   لوحة التحكم
+========================= */
+
+async function loadDashboard(){
+
+try{
+
+const r=await fetch(
+SUPABASE_URL=
+"https://wtdgwookaozcwivgzque.supabase.co";
+"&asset="sb_publishable_-QBPmgZrhDRVBnMVE9oOfg_4dTTWVeh";,
+{
+headers:headers()
+}
+);
+
+const rows=await r.json();
+
+const balance=
+Number(rows[0]?.available || 0);
+
+document.getElementById("balance")
+.textContent=balance.toFixed(8);
+
+document.getElementById("withdrawBalance")
+.textContent=balance.toFixed(8);
+
+await loadTransactions();
+
+}catch(e){
+
+msg("تعذر تحميل الرصيد","error");
+
+}
+
+}
+
+
+/* =========================
+   العمليات
+========================= */
+
+async function loadTransactions(){
+
+const r=await fetch(
+SUPABASE_URL+
+"https://wtdgwookaozcwivgzque.supabase.co";
+ 
+session.user.
+"&select=*&order=created_at.desc&limit=10",
+{
+headers:headers()
+}
+);
+
+const rows=await r.json();
+
+const box=
+document.getElementById("transactions");
+
+if(!rows.length){
+
+box.textContent="لا توجد عمليات";
+return;
+
+}
+
+box.innerHTML=rows.map(x=>`
+
+<div class="item">
+
+<b>${x.type}</b>
+
+<br>
+
+${Number(x.amount).toFixed(8)}
+${x.asset}
+
+<br>
+
+<span class="small">
+${new Date(x.created_at).toLocaleString("ar")}
+</span>
+
+</div>
+
+`).join("");
+
+}
+
+
+/* =========================
+   طلب السحب
+========================= */
+
+async function withdraw(){
+
+const amount=
+Number(
+document.getElementById("withdrawAmount").value
+);
+
+const network=
+document.getElementById("network").value;
+
+const wallet=
+document.getElementById("walletAddress").value.trim();
+
+if(!amount || amount<=0 || !network || !wallet){
+
+msg("أكمل بيانات السحب","error");
+return;
+
+}
+
+const r=await fetch(
+SUPABASE_URL+
+"/rest/v1/balances?user_id=eq."+
+session.user.id+
+"&asset=eq.MINING-CREDIT&select=*",
+{
+headers:headers()
+}
+);
+
+const rows=await r.json();
+
+const balance=
+Number(rows[0]?.available || 0);
+
+if(amount>balance){
+
+msg("الرصيد غير كافٍ","error");
+return;
+
+}
+
+
+/* إنشاء طلب السحب */
+
+const insert=await fetch(
+SUPABASE_URL+
+"/rest/v1/withdrawals",
+{
+method:"POST",
+headers:{
+...headers(),
+"Prefer":"return=minimal"
+},
+body:JSON.stringify({
+user_id:session.user.id,
+asset:"MINING-CREDIT",
+amount:amount,
+network:network,
+wallet_address:wallet,
+status:"pending"
+})
+});
+
+if(!insert.ok){
+
+msg("تعذر إنشاء طلب السحب","error");
+return;
+
+}
+
+msg(
+"تم إرسال طلب السحب للمراجعة",
+"success"
+);
+
+document.getElementById("withdrawAmount")
+.value="";
+
+document.getElementById("walletAddress")
+.value="";
+
+await loadWithdrawals();
+
+}
+
+
+/* =========================
+   عرض طلبات السحب
+========================= */
+
+async function loadWithdrawals(){
+
+const r=await fetch(
+SUPABASE_URL+
+"/rest/v1/withdrawals?user_id=eq."+
+session.user.id+
+"&select=*&order=created_at.desc&limit=20",
+{
+headers:headers()
+}
+);
+
+const rows=await r.json();
+
+const box=
+document.getElementById("withdrawals");
+
+if(!rows.length){
+
+box.textContent="لا توجد طلبات";
+return;
+
+}
+
+box.innerHTML=rows.map(x=>`
+
+<div class="item">
+
+<b>
+${Number(x.amount).toFixed(8)}
+</b>
+
+<br>
+
+الشبكة:
+${x.network || "-"}
+
+<br>
+
+الحالة:
+${x.status}
+
+<br>
+
+<span class="small">
+${x.wallet_address || ""}
+</span>
+
+</div>
+
+`).join("");
+
+}
+
+
+/* =========================
+   تسجيل الخروج
+========================= */
+
+function logout(){
+
+session=null;
+
+document.getElementById("app")
+.classList.add("hidden");
+
+document.getElementById("auth")
+.classList.remove("hidden");
+
+msg("تم تسجيل الخروج","success");
+
+}
+
+showLogin();
+
 </script>
+
 </body>
-</html>
+ </html>
